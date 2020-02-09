@@ -1,0 +1,19 @@
+<html>
+<head>
+    <title>Diff objects</title>
+</head>
+<body>
+    <form action="/diff_objects" method="post">
+        <textarea name="obj0" rows="10" cols="30"></textarea>
+        <textarea name="obj1" rows="10" cols="30"></textarea>
+        <br>
+        <input type="submit">
+        {% if has_result %}
+            <br>
+            <h1>obj0 - obj1:</h1>
+            <p>{{ diff01 }}</p>
+            <h1>obj1 - obj1 </h1>
+            <p>{{ diff10 }}</p>
+        {% endif %}
+    </form>
+</body>

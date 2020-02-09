@@ -1,0 +1,10 @@
+<html>
+    <head>
+        <title>web tools</title>
+    </head>
+    <body>
+        {% for tool in tools %}
+            <a href="{{ url_for(tool) }}"> {{ tool }} </a>
+        {% endfor %} 
+    </body>
+</html>
