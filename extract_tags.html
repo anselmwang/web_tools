@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Markdown Tag Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #tags {
+            width: 100%;
+            height: 100px;
+        }
+        #message {
+            display: none;
+            background-color: #f1f1f1;
+            color: #333;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Markdown Tag Extractor</h2>
+    <textarea id="markdownText" placeholder="Paste your Markdown text here"></textarea>
+    <button onclick="extractTags()">Extract Tags</button>
+    <br>
+    <textarea id="tags" placeholder="Extracted tags will appear here" readonly></textarea>
+    <button onclick="copyToClipboard()">Copy to Clipboard</button>
+    <div id="message"></div>
+
+    <script>
+        function extractTags() {
+            var markdownText = document.getElementById("markdownText").value;
+            var tags = extractUniqueTags(markdownText);
+            document.getElementById("tags").value = tags.join("\n");
+        }
+
+        function extractUniqueTags(markdownText) {
+            var tagPattern = /#[^\s]+/g;
+            var matches = markdownText.match(tagPattern);
+            var uniqueTags = [...new Set(matches.map(tag => tag.toLowerCase()))];
+            return uniqueTags;
+        }
+
+        function copyToClipboard() {
+            var tags = document.getElementById("tags");
+            tags.select();
+            document.execCommand("copy");
+
+            var message = document.getElementById("message");
+            message.textContent = "Tags copied to clipboard!";
+            message.style.display = "block";
+
+            setTimeout(function() {
+                message.style.display = "none";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
