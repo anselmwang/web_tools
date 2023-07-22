@@ -51,6 +51,9 @@
             var tagPattern = /#[^\s]+/g;
             var matches = markdownText.match(tagPattern);
             var uniqueTags = [...new Set(matches.map(tag => tag.toLowerCase()))];
+            // Filter out strings starting with "#diff-", which is extracted from GitHub commit URL
+            // Filter out strings starting with multiple "#", this is markdown heading
+            var filteredTags = uniqueTags.filter(tag => !tag.startsWith("#diff-") && !tag.startsWith("##"));
             return uniqueTags;
         }
 
