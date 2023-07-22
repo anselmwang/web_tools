@@ -54,7 +54,7 @@
             // Filter out strings starting with "#diff-", which is extracted from GitHub commit URL
             // Filter out strings starting with multiple "#", this is markdown heading
             var filteredTags = uniqueTags.filter(tag => !tag.startsWith("#diff-") && !tag.startsWith("##"));
-            return uniqueTags;
+            return filteredTags;
         }
 
         function copyToClipboard() {
