@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Markdown Tag Extractor</title>
     <style>
@@ -7,20 +8,24 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+
         textarea {
             width: 100%;
             height: 200px;
             margin-bottom: 10px;
         }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
         }
+
         #tags {
             width: 100%;
             height: 100px;
         }
+
         #message {
             display: none;
             background-color: #f1f1f1;
@@ -30,6 +35,7 @@
         }
     </style>
 </head>
+
 <body>
     <h2>Markdown Tag Extractor</h2>
     <textarea id="markdownText" placeholder="Paste your Markdown text here"></textarea>
@@ -37,6 +43,8 @@
     <br>
     <textarea id="tags" placeholder="Extracted tags will appear here" readonly></textarea>
     <button onclick="copyToClipboard()">Copy to Clipboard</button>
+    <textarea id="tags_in_md_list" placeholder="Extracted tags in markdown list" readonly></textarea>
+
     <div id="message"></div>
 
     <script>
@@ -45,6 +53,9 @@
             var tags = extractUniqueTags(markdownText);
             tags.sort();
             document.getElementById("tags").value = tags.join("\n");
+            const originalNestedList = parseFlatFormToNestedList(tags);
+            document.getElementById("tags_in_md_list").value = convertToMarkdownNestedList(originalNestedList);
+
         }
 
         function extractUniqueTags(markdownText) {
@@ -54,8 +65,66 @@
             // Filter out strings starting with "#diff-", which is extracted from GitHub commit URL
             // Filter out strings starting with multiple "#", this is markdown heading
             var filteredTags = uniqueTags.filter(tag => !tag.startsWith("#diff-") && !tag.startsWith("##"));
+
+
             return filteredTags;
         }
+
+        function parseFlatFormToNestedList(flatFormArray) {
+            const nestedList = [];
+
+            function addItemToNestedList(item, path) {
+                const paths = path.split("/");
+                let currentLevel = nestedList;
+
+                paths.forEach((pathItem) => {
+                    const existingItem = currentLevel.find((item) => item.item === pathItem);
+                    if (!existingItem) {
+                        const newItem = { item: pathItem, children: [] }; // Add an empty "children" array for each item
+                        currentLevel.push(newItem);
+                        currentLevel = newItem.children;
+                    } else {
+                        currentLevel = existingItem.children;
+                    }
+                });
+
+                currentLevel.push({ item }); // Ensure each item has an "item" property in its children array
+            }
+
+            flatFormArray.forEach((line) => {
+                const lastSlashIndex = line.lastIndexOf("/");
+                const item = lastSlashIndex !== -1 ? line.substring(lastSlashIndex + 1) : line;
+                const path = lastSlashIndex !== -1 ? line.substring(0, lastSlashIndex) : "";
+
+                addItemToNestedList(item, path);
+            });
+
+            return nestedList;
+        }
+
+
+        function convertToMarkdownNestedList(nestedList) {
+            function generateMarkdownRecursive(item, depth) {
+                const indent = "  ".repeat(depth);
+                let markdown = `${indent}- ${item.item}\n`;
+
+                if (Array.isArray(item.children)) {
+                    item.children.forEach((child) => {
+                        markdown += generateMarkdownRecursive(child, depth + 1);
+                    });
+                }
+
+                return markdown;
+            }
+
+            let markdownList = "";
+            nestedList.forEach((item) => {
+                markdownList += generateMarkdownRecursive(item, 0);
+            });
+
+            return markdownList;
+        }
+
 
         function copyToClipboard() {
             var tags = document.getElementById("tags");
@@ -66,10 +135,11 @@
             message.textContent = "Tags copied to clipboard!";
             message.style.display = "block";
 
-            setTimeout(function() {
+            setTimeout(function () {
                 message.style.display = "none";
             }, 3000);
         }
     </script>
 </body>
+
 </html>
