@@ -43,6 +43,7 @@
         function extractTags() {
             var markdownText = document.getElementById("markdownText").value;
             var tags = extractUniqueTags(markdownText);
+            tags.sort();
             document.getElementById("tags").value = tags.join("\n");
         }
 
