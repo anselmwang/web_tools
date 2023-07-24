@@ -38,6 +38,8 @@
 
 <body>
     <h2>Markdown Tag Extractor</h2>
+    <button id="loadFileButton">Load File</button>
+
     <textarea id="markdownText" placeholder="Paste your Markdown text here"></textarea>
     <button onclick="extractTags()">Extract Tags</button>
     <br>
@@ -48,13 +50,37 @@
     <div id="message"></div>
 
     <script>
+        function loadFile() {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = ".md"; // Only allow Markdown files
+            fileInput.addEventListener("change", (event) => {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.addEventListener("load", (event) => {
+                    const markdownText = event.target.result;
+                    document.getElementById("markdownText").value = markdownText;
+                    // Trigger the "input" event to extract tags
+                    document.getElementById("markdownText").dispatchEvent(new Event("input", { bubbles: true })); 
+
+                });
+                reader.readAsText(file);
+            });
+            fileInput.click();
+        }
+
         function extractTags() {
             var markdownText = document.getElementById("markdownText").value;
             var tags = extractUniqueTags(markdownText);
             tags.sort();
+// Process tags
+tags = tags.map(function(tag) {
+        return tag.substring(1);
+});
             document.getElementById("tags").value = tags.join("\n");
             const originalNestedList = parseFlatFormToNestedList(tags);
-            document.getElementById("tags_in_md_list").value = convertToMarkdownNestedList(originalNestedList);
+            sortNestedList(originalNestedList);
+            document.getElementById("tags_in_md_list").value = convertToMarkdownNestedHeadings(originalNestedList);
 
         }
 
@@ -101,12 +127,26 @@
 
             return nestedList;
         }
-
-
-        function convertToMarkdownNestedList(nestedList) {
+function sortNestedList(nestedList) {
+  nestedList.forEach((node) => {
+    if (node.children && node.children.length > 0) {
+      sortNestedList(node.children);
+    }
+  });
+  nestedList.sort((a, b) => {
+    if (!a.children && b.children) {
+      return 1;
+    } else if (a.children && !b.children) {
+      return -1;
+    } else {
+      return a.item.localeCompare(b.item);
+    }
+  });
+}
+        function convertToMarkdownNestedHeadings(nestedList) {
             function generateMarkdownRecursive(item, depth) {
-                const indent = "  ".repeat(depth);
-                let markdown = `${indent}- ${item.item}\n`;
+                const indent = "#".repeat(depth) + " ";
+                let markdown = `${indent}${item.item}\n`;
 
                 if (Array.isArray(item.children)) {
                     item.children.forEach((child) => {
@@ -117,12 +157,12 @@
                 return markdown;
             }
 
-            let markdownList = "";
+            let markdownHeadings = "";
             nestedList.forEach((item) => {
-                markdownList += generateMarkdownRecursive(item, 0);
+                markdownHeadings += generateMarkdownRecursive(item, 1);
             });
 
-            return markdownList;
+            return markdownHeadings;
         }
 
 
@@ -139,6 +179,10 @@
                 message.style.display = "none";
             }, 3000);
         }
+        const loadFileButton = document.getElementById("loadFileButton");
+        loadFileButton.addEventListener("click", loadFile);
+        const markdownText = document.getElementById("markdownText");
+        markdownText.addEventListener("input", extractTags);
     </script>
 </body>
 
